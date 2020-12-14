@@ -24,8 +24,8 @@ BACKUP_POD_NAME=$(kubectl get pods -n px-backup -l app=px-backup -o jsonpath='{.
 kubectl cp -n px-backup $BACKUP_POD_NAME:pxbackupctl/linux/pxbackupctl /usr/bin/pxbackupctl
 chmod +x /usr/bin/pxbackupctl
 
-BACKUP_POD_IP=$(kubectl get pods -n px-backup -l app=px-backup -o jsonpath='{.items[*].status.podIP}' 2>/dev/null)
+BACKUP_POD_IP=$(kubectl get pods -n px-backup -l app=px-backup -o jsonpath='{.items[*].status.hostIP}' 2>/dev/null)
 backupPort=$(kubectl get svc px-backup-ui -n px-backup -o=jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
 client_secret=$(kubectl get secret --namespace px-backup pxc-backup-secret -o jsonpath={.data.OIDC_CLIENT_SECRET} | base64 --decode)
-pxbackupctl login -s http://$pubIP:$backupPort -u admin -p admin
+pxbackupctl login -s http://$BACKUP_POD_IP:$backupPort -u admin -p admin
 pxbackupctl create cluster --name cluster-1 -k /root/.kube/config -e $BACKUP_POD_IP:10002 --orgID default
